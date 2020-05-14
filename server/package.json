@@ -1,0 +1,21 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "Big file upload server",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node index.js"
+  },
+  "keywords": [
+    "node.js",
+    "upload"
+  ],
+  "author": "Leon Ling",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "fs-extra": "^9.0.0",
+    "multiparty": "^4.2.1",
+    "rimraf": "^3.0.2"
+  }
+}
