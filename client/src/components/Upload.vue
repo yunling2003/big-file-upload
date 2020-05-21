@@ -8,8 +8,10 @@
           class="upload-input"
           :placeholder="placeholder"
           ref="uploader" />      
-        <button @click="uploadFile">
-          <span>{{ buttonLabel }}</span>
+        <button
+          :disabled="disableBtn"
+          @click="uploadFile">
+          <span>Upload</span>
         </button>
       </div>
       <div class="progress-panel">
@@ -20,7 +22,7 @@
 </template>
 
 <script>
-const CHUNK_SIZE = 20000000;
+const CHUNK_SIZE = 10000000;
 const BASE_URL = 'http://localhost:3000';
 const UPLOAD_URL = '/uploadChunk';
 const FINCODE_URL = '/setFinish';
@@ -36,7 +38,7 @@ export default {
   data() {
     return {
       placeholder: "Select File to Upload",
-      buttonLabel: "Upload",
+      disableBtn: false,
       file: null,
       fileChunks: [],
       progresses: []
@@ -46,7 +48,11 @@ export default {
     msg: String
   },
   methods: {
-    uploadFile() {      
+    uploadFile() {
+      //reset progress
+      this.progresses = [];
+      
+      this.disableBtn = true;
       this.file = this.$refs.uploader.files[0];
       if(!this.file) {
         alert('Please choose a file to upload!');
@@ -77,8 +83,10 @@ export default {
         return this.sendFinCode();
       }).then(res => {
         console.log(res);
+        this.disableBtn = false;
       }).catch(error => {
         console.error(error);
+        this.disableBtn = false;
       })
     },
 
