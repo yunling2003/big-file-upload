@@ -22,11 +22,6 @@
 </template>
 
 <script>
-const CHUNK_SIZE = 10000000;
-const BASE_URL = 'http://localhost:3000';
-const UPLOAD_URL = '/uploadChunk';
-const FINCODE_URL = '/setFinish';
-
 import ProgressBar from './ProgressBar'
 import request from '../utils/request'
 
@@ -75,7 +70,7 @@ export default {
         formData = new FormData();
         formData.append("hash", this.file.name + ";" + index);
         formData.append("chunk", this.fileChunks[index]);
-        reqs.push(request('POST', BASE_URL + UPLOAD_URL, formData, index, this.updateProgress));        
+        reqs.push(request('POST', process.env.VUE_APP_BASE_URL + '/uploadChunk', formData, index, this.updateProgress));        
       }
 
       Promise.all(reqs).then(res => {
@@ -93,19 +88,19 @@ export default {
     sendFinCode() {
       let formData = new FormData();
       formData.append("fileName", this.file.name)
-      return request('POST', BASE_URL + FINCODE_URL, formData);
+      return request('POST', process.env.VUE_APP_BASE_URL + '/setFinish', formData);
     },
 
     getChunkedFile(file) {
       let fileChunks = [],
-        n = file.size / CHUNK_SIZE,
+        n = file.size / process.env.VUE_APP_CHUNK_SIZE,
         start = 0,
-        end = CHUNK_SIZE;
+        end = process.env.VUE_APP_CHUNK_SIZE;
       for(let i = 0; i <= n; i++) {
         let tmpChunk = i === n ? file.slice(start) : file.slice(start, end);
         fileChunks.push(tmpChunk);
         start = end;
-        end += CHUNK_SIZE;
+        end += process.env.VUE_APP_CHUNK_SIZE;
       }
       return fileChunks;
     },
