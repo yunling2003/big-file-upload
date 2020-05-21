@@ -11,26 +11,35 @@
         <button @click="uploadFile">
           <span>{{ buttonLabel }}</span>
         </button>
+      </div>
+      <div class="progress-panel">
+        <progress-bar v-for="ind in fileChunks.length" :key="ind" :item="progresses[ind - 1]"></progress-bar>
       </div>      
     </div>    
   </div>
 </template>
 
 <script>
-const CHUNK_SIZE = 1000000;
+const CHUNK_SIZE = 20000000;
 const BASE_URL = 'http://localhost:3000';
 const UPLOAD_URL = '/uploadChunk';
 const FINCODE_URL = '/setFinish';
 
+import ProgressBar from './ProgressBar'
 import request from '../utils/request'
 
 export default {
   name: 'BigFileUpload',
+  components: {
+    ProgressBar
+  },
   data() {
     return {
       placeholder: "Select File to Upload",
       buttonLabel: "Upload",
-      file: null
+      file: null,
+      fileChunks: [],
+      progresses: []
     }    
   },
   props: {
@@ -43,20 +52,24 @@ export default {
         alert('Please choose a file to upload!');
         return;
       }
-      let fileChunks = this.getChunkedFile(this.file);
-      this.uploadByChunks(fileChunks);      
+      this.fileChunks = this.getChunkedFile(this.file);
+      for(let i = 0; i < this.fileChunks.length; i++) {
+        this.progresses.push({
+          index: i,
+          percentage: 0
+        });
+      }
+      this.uploadByChunks();      
     },
 
-    uploadByChunks(fileChunks) {      
-      let formData = null;
-      let ind = 1;
-      let reqs = [];
-      for (let index in fileChunks) {
+    uploadByChunks() {      
+      let formData = null,     
+          reqs = [];
+      for (let index in this.fileChunks) {
         formData = new FormData();
-        formData.append("hash", this.file.name + ";" + ind);
-        formData.append("chunk", fileChunks[index]);
-        reqs.push(request('POST', BASE_URL + UPLOAD_URL, formData));        
-        ind++;
+        formData.append("hash", this.file.name + ";" + index);
+        formData.append("chunk", this.fileChunks[index]);
+        reqs.push(request('POST', BASE_URL + UPLOAD_URL, formData, index, this.updateProgress));        
       }
 
       Promise.all(reqs).then(res => {
@@ -87,12 +100,18 @@ export default {
         end += CHUNK_SIZE;
       }
       return fileChunks;
+    },
+
+    updateProgress(index, evt) {
+      let progress = this.progresses.find(x => x.index === parseInt(index));
+      if(progress) {
+        progress.percentage = Math.round(evt.loaded /evt.total * 100) + "%";
+      }
     }
   }
 }
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 h1 {
   margin: 40px 0;
@@ -107,5 +126,8 @@ h1 {
 }
 .upload-input {
   border: 1px solid;
+}
+.progress-panel {
+  margin-top: 30px;
 }
 </style>

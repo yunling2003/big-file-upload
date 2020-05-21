@@ -1,5 +1,5 @@
 
-export default (type = 'POST', url, data) => {
+export default (type = 'POST', url, data, index, progressCallback) => {
   return new Promise((resolve, reject) => {
     let xhr = new XMLHttpRequest();
 
@@ -16,6 +16,12 @@ export default (type = 'POST', url, data) => {
     xhr.onerror = (evt) => {
       console.log(evt);
       reject(Error('Something wrong occurs!'));
+    };
+
+    xhr.upload.onprogress = (evt) => {
+      if(progressCallback && typeof progressCallback === 'function') {
+        progressCallback(index, evt);
+      }
     };
 
     xhr.open(type, url);
